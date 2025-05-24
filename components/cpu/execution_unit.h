@@ -1,0 +1,53 @@
+#pragma once
+
+#define RV32_CMP3(val11, val21, val31, val12, val22, val32) \
+    ((val11) == (val12) && (val21) == (val22) && (val31) == (val32))
+
+#define RV32_CMP2(val11, val21, val12, val22) \
+    ((val11) == (val12) && (val21) == (val22))
+
+#define RV32_CMP(val11, val12) \
+    ((val11) == (val12))
+
+// 32-bit RISC-V instruction formats (RV32)
+// RV32_<bit range>_<operation alias>
+
+#define RV32_OP_OFFSET 2
+#define RV32_FT3_OFFSET 12
+#define RV32_FT7_OFFSET 25
+
+#define RV32_OP_OR      0b01100
+#define RV32_OP_AND     0b01100
+#define RV32_OP_XOR     0b01100
+#define RV32_OP_ADD     0b01100
+#define RV32_OP_SUB     0b01100
+#define RV32_OP_ADDI    0b00100
+
+#define RV32_FT3_OR     0b110
+#define RV32_FT3_AND    0b111
+#define RV32_FT3_XOR    0b100
+#define RV32_FT3_ADD    0b000
+#define RV32_FT3_SUB    0b000
+#define RV32_FT3_ADDI   0b000
+
+#define RV32_FT7_OR     0b0
+#define RV32_FT7_AND    0b0
+#define RV32_FT7_XOR    0b0
+#define RV32_FT7_ADD    0b0
+#define RV32_FT7_SUB    0b0100000
+#define RV32_FT7_ADDI   0b0100000
+
+// #define RV32_FT7_FT3_OP_name RV32_OP_name << RV32_OP_OFFSET | RV32_FT3_name << RV32_FT3_OFFSET | RV32_FT7_name << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_OR RV32_OP_OR << RV32_OP_OFFSET | RV32_FT3_OR << RV32_FT3_OFFSET | RV32_FT7_OR << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_AND RV32_OP_AND << RV32_OP_OFFSET | RV32_FT3_AND << RV32_FT3_OFFSET | RV32_FT7_AND << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_XOR RV32_OP_XOR << RV32_OP_OFFSET | RV32_FT3_XOR << RV32_FT3_OFFSET | RV32_FT7_XOR << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_ADD RV32_OP_ADD << RV32_OP_OFFSET | RV32_FT3_ADD << RV32_FT3_OFFSET | RV32_FT7_ADD << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_SUB RV32_OP_SUB << RV32_OP_OFFSET | RV32_FT3_SUB << RV32_FT3_OFFSET | RV32_FT7_SUB << RV32_FT7_OFFSET
+#define RV32_FT3_OP_ADDI RV32_OP_ADDI << RV32_OP_OFFSET | RV32_FT3_ADDI << RV32_FT3_OFFSET
+
+#define RV32_OP_MASK  0b11111 << RV32_OP_OFFSET
+#define RV32_FT3_MASK 0b111 << RV32_FT3_OFFSET
+#define RV32_FT7_MASK 0b1111111 << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_MASK RV32_OP_MASK | RV32_FT3_MASK | RV32_FT7_MASK
+
+
