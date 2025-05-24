@@ -50,4 +50,24 @@
 #define RV32_FT7_MASK 0b1111111 << RV32_FT7_OFFSET
 #define RV32_FT7_FT3_OP_MASK RV32_OP_MASK | RV32_FT3_MASK | RV32_FT7_MASK
 
+SC_MODULE(EXECUTION_UNIT) {
+public:
+    sc_in<bool> clk;
+    sc_in<sc_bv<5>> opcode;
+    sc_in<sc_bv<3>> funct3;
+    sc_in<sc_bv<7>> funct7;
 
+    sc_out<bool> regWriteEn;
+    sc_out<sc_uint<1>> regWriteDataSel;
+    sc_out<sc_uint<1>> aluSrc;
+    sc_out<sc_uint<3>> aluCmd;
+
+    SC_CTOR(EXECUTION_UNIT) {
+        SC_METHOD(main);
+        sensitive << clk.pos() << opcode << funct3 << funct7;
+        dont_initialize();
+    }
+
+private:
+    void main();
+};

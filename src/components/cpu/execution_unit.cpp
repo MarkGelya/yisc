@@ -1,34 +1,9 @@
 #include "systemc.h"
 
 #include "alu.h"
-#include "registers.h"
 #include "execution_unit.h"
 
-SC_MODULE(EXECUTION_UNIT) {
-public:
-    sc_in<bool> clk;
-    sc_in<sc_bv<5>> opcode;
-    sc_in<sc_bv<3>> funct3;
-    sc_in<sc_bv<7>> funct7;
-
-    sc_out<bool> regWriteEn;
-    sc_out<sc_uint<1>> aluSrc;
-    sc_out<sc_uint<3>> aluCmd;
-
-    SC_CTOR(EXECUTION_UNIT) {
-        SC_METHOD(main);
-        sensitive << clk.pos() << opcode << funct3 << funct7;
-        dont_initialize();
-    }
-
-private:
-    RV32Reg registers;
-    void main();
-};
-
 void EXECUTION_UNIT::main() {
-    std::cout << "EXECUTION_UNIT" << endl;
-
     uint32_t op = opcode.read().to_uint();
     uint32_t f3 = funct3.read().to_uint();
     uint32_t f7 = funct7.read().to_uint();

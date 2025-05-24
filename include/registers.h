@@ -4,10 +4,10 @@
 
 struct RV32Reg {
     union {
-        uint32_t regs[32];
+        uint32_t regs[32] {0};
         // psABI
         struct {
-            uint32_t zero {0};
+            uint32_t zero;
             uint32_t ra;
             uint32_t sp;
             uint32_t gp;
@@ -39,7 +39,7 @@ struct RV32Reg {
             uint32_t t4;
             uint32_t t5;
             uint32_t t6;
-        };
+        } psabi;
         struct {
             uint32_t x0;
             uint32_t x1;
