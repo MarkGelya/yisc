@@ -13,20 +13,20 @@ Memory::Memory(sc_core::sc_module_name const &name) : sc_module(name), socket("s
 
 void Memory::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay) {
     tlm::tlm_command cmd = trans.get_command();
-    uint64_t adr = trans.get_address();
+    uint64_t addr = trans.get_address();
     unsigned char *ptr = trans.get_data_ptr();
     unsigned int len = trans.get_data_length();
 
-    if (adr >= (uint64_t)MEM_SIZE) {
+    if (addr >= (uint64_t)MEM_SIZE) {
         trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
         return;
     }
 
     if (cmd == tlm::TLM_READ_COMMAND) {
-        // std::copy_n(mem + adr, len, ptr);
+        std::copy_n(mem + addr, len, ptr);
         std::cout << "TLM_READ_COMMAND" << std::endl;
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-        // std::copy_n(ptr, len, mem + adr);
+        std::copy_n(ptr, len, mem + addr);
         std::cout << "TLM_WRITE_COMMAND" << std::endl;
     }
 

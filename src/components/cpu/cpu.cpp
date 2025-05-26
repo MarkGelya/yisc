@@ -52,7 +52,7 @@ CPU::CPU(const sc_core::sc_module_name &name) : sc_module(name) {
     prog_counter.rst(rst);
     prog_counter.pcSrc(progCounterSrc);
     prog_counter.immB(instrImmB_bus);
-    prog_counter.addr(memAddr);
+    prog_counter.addr(busAddr);
 
     SC_METHOD(extend_instrImmI_bus);
     sensitive << instrImmI_bus;
@@ -62,26 +62,36 @@ CPU::CPU(const sc_core::sc_module_name &name) : sc_module(name) {
     sensitive << instrImmU_bus;
     dont_initialize();
 
-    SC_THREAD(main)
-    sensitive << clk;
+    SC_METHOD(main)
+    sensitive << clk->posedge_event();
+
+    SC_THREAD(bus_thread)
+    sensitive << busEnable;
 }
 
 void CPU::main() {
+
+}
+
+void CPU::bus_thread() {
     while (true) {
-        wait(clk->posedge_event());
+        wait(busEnable.posedge_event());
         tlm::tlm_generic_payload trans;
-        trans.set_command(tlm::TLM_WRITE_COMMAND);
-        trans.set_address(0x1234);
-        trans.set_data_ptr((unsigned char*)0xC0FFEE);
-        trans.set_data_length(1);
+        if (busRdWr.read() == 0)
+            trans.set_command(tlm::TLM_READ_COMMAND);
+        else
+            trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(busAddr.read());
+        uint32_t buff;
+        trans.set_data_ptr((unsigned char*)&buff);
+        trans.set_data_length(sizeof(buff));
         sc_core::sc_time latency = sc_core::SC_ZERO_TIME;
         memory->b_transport(trans, latency);
         wait(latency);
-        wait(1, SC_SEC);
+        busData.write(buff);
         if (trans.get_response_status() != tlm::TLM_OK_RESPONSE)
             SC_REPORT_FATAL("Write", "Bad response\n");
     }
-
 }
 
 void CPU::extend_instrImmI_bus() {

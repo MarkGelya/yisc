@@ -3,13 +3,35 @@
 #include "alu.h"
 #include "execution_unit.h"
 
-void EXECUTION_UNIT::main() {
-    uint32_t op = opcode.read().to_uint();
-    uint32_t f3 = funct3.read().to_uint();
-    uint32_t f7 = funct7.read().to_uint();
+void EXECUTION_UNIT::instrFetch() {
 
-    uint32_t instr = op << RV32_OP_OFFSET | f3 << RV32_FT3_OFFSET | f7 << RV32_FT7_OFFSET;
+}
+
+void EXECUTION_UNIT::main() {
+
+    while (true) {
+        uint32_t op = opcode.read().to_uint();
+        uint32_t f3 = funct3.read().to_uint();
+        uint32_t f7 = funct7.read().to_uint();
+        uint32_t instr = op << RV32_OP_OFFSET | f3 << RV32_FT3_OFFSET | f7 << RV32_FT7_OFFSET;
+
+    }
+
+
     aluSrc.write(0);
+
+    switch (state) {
+        case State::InstrFetch:
+            instrFetch();
+            break;
+        case State::OpFetch:
+            std::cout << "OpFetch";
+            break;
+        case State::Execute:
+            std::cout << "Execute";
+            break;
+    }
+
     switch(instr) {
         case RV32_FT7_FT3_OP_OR:
             aluCmd.write(ALU_CMD::OR);

@@ -14,6 +14,7 @@
 
 class CPU : sc_core::sc_module {
 public:
+
     sc_port<sc_signal_in_if<bool>> run;
     sc_port<sc_signal_in_if<bool>> rst;
     sc_port<sc_signal_in_if<bool>> clk;
@@ -22,6 +23,7 @@ public:
 
     tlm_utils::simple_initiator_socket<CPU> memory;
 
+    // instruction decoder
     sc_signal<sc_bv<32>> instr_bus;
     sc_signal<sc_bv<5>> instrOp_bus;
     sc_signal<sc_bv<3>> instrF3_bus;
@@ -32,6 +34,7 @@ public:
     sc_signal<sc_uint<32>> instrImmUExtTo32_bus;
     sc_signal<sc_bv<20>> instrImmB_bus;
 
+    // register file
     sc_signal<sc_bv<5>> regFileA1;
     sc_signal<sc_bv<5>> regFileA2;
     sc_signal<sc_bv<5>> regFileAD;
@@ -41,6 +44,7 @@ public:
     sc_signal<sc_uint<32>> regFileRD1;
     sc_signal<sc_uint<32>> regFileRD2;
 
+    // ALU
     sc_signal<sc_uint<1>> aluSrc_bus;
     sc_signal<sc_uint<3>> aluCmd_bus;
     sc_signal<sc_uint<32>> aluB_bus;
@@ -48,7 +52,11 @@ public:
 
     sc_signal<sc_uint<1>> progCounterSrc;
 
-    sc_signal<sc_uint<32>> memAddr;
+    // mem/io
+    sc_signal<bool> busEnable;
+    sc_signal<sc_uint<1>> busRdWr;
+    sc_signal<sc_uint<32>> busAddr;
+    sc_signal<sc_uint<32>> busData;
 
     CPU(const sc_core::sc_module_name &name);
 
@@ -62,6 +70,7 @@ private:
     PROG_COUNTER prog_counter{"PROG_COUNTER"};
 
     void main();
+    void bus_thread();
     void extend_instrImmI_bus();
     void extend_instrImmU_bus();
 };

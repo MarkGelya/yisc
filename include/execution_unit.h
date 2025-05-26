@@ -22,6 +22,8 @@
 #define RV32_OP_ADD     0b01100
 #define RV32_OP_SUB     0b01100
 #define RV32_OP_ADDI    0b00100
+#define RV32_OP_LD      0b00000
+#define RV32_OP_SD      0b01000
 
 #define RV32_FT3_OR     0b110
 #define RV32_FT3_AND    0b111
@@ -29,21 +31,24 @@
 #define RV32_FT3_ADD    0b000
 #define RV32_FT3_SUB    0b000
 #define RV32_FT3_ADDI   0b000
+#define RV32_FT3_LD     0b011
+#define RV32_FT3_SD     0b011
 
 #define RV32_FT7_OR     0b0
 #define RV32_FT7_AND    0b0
 #define RV32_FT7_XOR    0b0
 #define RV32_FT7_ADD    0b0
 #define RV32_FT7_SUB    0b0100000
-#define RV32_FT7_ADDI   0b0100000
 
 // #define RV32_FT7_FT3_OP_name RV32_OP_name << RV32_OP_OFFSET | RV32_FT3_name << RV32_FT3_OFFSET | RV32_FT7_name << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_OR RV32_OP_OR << RV32_OP_OFFSET | RV32_FT3_OR << RV32_FT3_OFFSET | RV32_FT7_OR << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_AND RV32_OP_AND << RV32_OP_OFFSET | RV32_FT3_AND << RV32_FT3_OFFSET | RV32_FT7_AND << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_XOR RV32_OP_XOR << RV32_OP_OFFSET | RV32_FT3_XOR << RV32_FT3_OFFSET | RV32_FT7_XOR << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_ADD RV32_OP_ADD << RV32_OP_OFFSET | RV32_FT3_ADD << RV32_FT3_OFFSET | RV32_FT7_ADD << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_SUB RV32_OP_SUB << RV32_OP_OFFSET | RV32_FT3_SUB << RV32_FT3_OFFSET | RV32_FT7_SUB << RV32_FT7_OFFSET
-#define RV32_FT3_OP_ADDI RV32_OP_ADDI << RV32_OP_OFFSET | RV32_FT3_ADDI << RV32_FT3_OFFSET
+#define RV32_FT7_FT3_OP_OR      RV32_OP_OR << RV32_OP_OFFSET | RV32_FT3_OR << RV32_FT3_OFFSET | RV32_FT7_OR << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_AND     RV32_OP_AND << RV32_OP_OFFSET | RV32_FT3_AND << RV32_FT3_OFFSET | RV32_FT7_AND << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_XOR     RV32_OP_XOR << RV32_OP_OFFSET | RV32_FT3_XOR << RV32_FT3_OFFSET | RV32_FT7_XOR << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_ADD     RV32_OP_ADD << RV32_OP_OFFSET | RV32_FT3_ADD << RV32_FT3_OFFSET | RV32_FT7_ADD << RV32_FT7_OFFSET
+#define RV32_FT7_FT3_OP_SUB     RV32_OP_SUB << RV32_OP_OFFSET | RV32_FT3_SUB << RV32_FT3_OFFSET | RV32_FT7_SUB << RV32_FT7_OFFSET
+#define RV32_FT3_OP_ADDI        RV32_OP_ADDI << RV32_OP_OFFSET | RV32_FT3_ADDI << RV32_FT3_OFFSET
+#define RV32_FT3_OP_LD          RV32_OP_LD << RV32_OP_OFFSET | RV32_FT3_LD << RV32_FT3_OFFSET
+#define RV32_FT3_OP_SD          RV32_OP_SD << RV32_OP_OFFSET | RV32_FT3_SD << RV32_FT3_OFFSET
 
 #define RV32_OP_MASK  0b11111 << RV32_OP_OFFSET
 #define RV32_FT3_MASK 0b111 << RV32_FT3_OFFSET
@@ -52,6 +57,12 @@
 
 SC_MODULE(EXECUTION_UNIT) {
 public:
+    enum State {
+        InstrFetch = 0,
+        OpFetch,
+        Execute,
+    };
+
     sc_in<bool> clk;
     sc_in<sc_bv<5>> opcode;
     sc_in<sc_bv<3>> funct3;
@@ -61,13 +72,21 @@ public:
     sc_out<sc_uint<1>> regWriteDataSel;
     sc_out<sc_uint<1>> aluSrc;
     sc_out<sc_uint<3>> aluCmd;
+    sc_out<sc_uint<1>> busRdWr;
+    sc_out<bool> busEnable;
+
+    State state;
 
     SC_CTOR(EXECUTION_UNIT) {
         SC_METHOD(main);
-        sensitive << clk.pos() << opcode << funct3 << funct7;
+        sensitive << clk.pos();
         dont_initialize();
     }
 
 private:
     void main();
+
+    void instrFetch();
+    void opFetch();
+    void execute();
 };
