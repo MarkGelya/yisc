@@ -1,92 +1,24 @@
 #pragma once
 
-#define RV32_CMP3(val11, val21, val31, val12, val22, val32) \
-    ((val11) == (val12) && (val21) == (val22) && (val31) == (val32))
+#define INSTR_OPCODE_OFFSET 0
+#define INSTR_RS1_OFFSET (INSTR_OPCODE_OFFSET+8)
+#define INSTR_RS2_OFFSET (INSTR_RS1_OFFSET+5)
+#define INSTR_RD_OFFSET (INSTR_RS2_OFFSET+5)
+#define INSTR_IMM_OFFSET (INSTR_RD_OFFSET+6)
 
-#define RV32_CMP2(val11, val21, val12, val22) \
-    ((val11) == (val12) && (val21) == (val22))
+#define INSTR_OPCODE_MASK  (0xFF << INSTR_OPCODE_OFFSET)
+#define INSTR_RS1_MASK     (0x1F << INSTR_RS1_OFFSET)
+#define INSTR_RS2_MASK     (0x1F << INSTR_RS2_OFFSET)
+#define INSTR_RD_MASK      (0x1F << INSTR_RD_OFFSET)
+#define INSTR_IMM_MASK     (0xFF << INSTR_IMM_OFFSET)
 
-#define RV32_CMP(val11, val12) \
-    ((val11) == (val12))
+#define GET_OPCODE(val) ((val & INSTR_OPCODE_MASK) >> INSTR_OPCODE_OFFSET)
+#define GET_RS1(val) ((val & INSTR_RS1_MASK) >> INSTR_RS1_OFFSET)
+#define GET_RS2(val) ((val & INSTR_RS2_MASK) >> INSTR_RS2_OFFSET)
+#define GET_RD(val) ((val & INSTR_RD_MASK) >> INSTR_RD_OFFSET)
+#define GET_IMM(val) ((int32_t)(((val & INSTR_IMM_MASK) >> INSTR_IMM_OFFSET) - 0x80))
 
-// 32-bit RISC-V instruction formats (RV32)
-// RV32_<bit range>_<operation alias>
-
-#define RV32_OP_OFFSET 2
-#define RV32_FT3_OFFSET 12
-#define RV32_FT7_OFFSET 25
-
-#define RV32_OP_OR      0b01100
-#define RV32_OP_AND     0b01100
-#define RV32_OP_XOR     0b01100
-#define RV32_OP_ADD     0b01100
-#define RV32_OP_SUB     0b01100
-#define RV32_OP_ADDI    0b00100
-#define RV32_OP_LD      0b00000
-#define RV32_OP_SD      0b01000
-
-#define RV32_FT3_OR     0b110
-#define RV32_FT3_AND    0b111
-#define RV32_FT3_XOR    0b100
-#define RV32_FT3_ADD    0b000
-#define RV32_FT3_SUB    0b000
-#define RV32_FT3_ADDI   0b000
-#define RV32_FT3_LD     0b011
-#define RV32_FT3_SD     0b011
-
-#define RV32_FT7_OR     0b0
-#define RV32_FT7_AND    0b0
-#define RV32_FT7_XOR    0b0
-#define RV32_FT7_ADD    0b0
-#define RV32_FT7_SUB    0b0100000
-
-// #define RV32_FT7_FT3_OP_name RV32_OP_name << RV32_OP_OFFSET | RV32_FT3_name << RV32_FT3_OFFSET | RV32_FT7_name << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_OR      RV32_OP_OR << RV32_OP_OFFSET | RV32_FT3_OR << RV32_FT3_OFFSET | RV32_FT7_OR << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_AND     RV32_OP_AND << RV32_OP_OFFSET | RV32_FT3_AND << RV32_FT3_OFFSET | RV32_FT7_AND << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_XOR     RV32_OP_XOR << RV32_OP_OFFSET | RV32_FT3_XOR << RV32_FT3_OFFSET | RV32_FT7_XOR << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_ADD     RV32_OP_ADD << RV32_OP_OFFSET | RV32_FT3_ADD << RV32_FT3_OFFSET | RV32_FT7_ADD << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_SUB     RV32_OP_SUB << RV32_OP_OFFSET | RV32_FT3_SUB << RV32_FT3_OFFSET | RV32_FT7_SUB << RV32_FT7_OFFSET
-#define RV32_FT3_OP_ADDI        RV32_OP_ADDI << RV32_OP_OFFSET | RV32_FT3_ADDI << RV32_FT3_OFFSET
-#define RV32_FT3_OP_LD          RV32_OP_LD << RV32_OP_OFFSET | RV32_FT3_LD << RV32_FT3_OFFSET
-#define RV32_FT3_OP_SD          RV32_OP_SD << RV32_OP_OFFSET | RV32_FT3_SD << RV32_FT3_OFFSET
-
-#define RV32_OP_MASK  0b11111 << RV32_OP_OFFSET
-#define RV32_FT3_MASK 0b111 << RV32_FT3_OFFSET
-#define RV32_FT7_MASK 0b1111111 << RV32_FT7_OFFSET
-#define RV32_FT7_FT3_OP_MASK RV32_OP_MASK | RV32_FT3_MASK | RV32_FT7_MASK
-
-SC_MODULE(EXECUTION_UNIT) {
-public:
-    enum State {
-        InstrFetch = 0,
-        OpFetch,
-        Execute,
-    };
-
-    sc_in<bool> clk;
-    sc_in<sc_bv<5>> opcode;
-    sc_in<sc_bv<3>> funct3;
-    sc_in<sc_bv<7>> funct7;
-
-    sc_out<bool> regWriteEn;
-    sc_out<sc_uint<1>> regWriteDataSel;
-    sc_out<sc_uint<1>> aluSrc;
-    sc_out<sc_uint<3>> aluCmd;
-    sc_out<sc_uint<1>> busRdWr;
-    sc_out<bool> busEnable;
-
-    State state;
-
-    SC_CTOR(EXECUTION_UNIT) {
-        SC_METHOD(main);
-        sensitive << clk.pos();
-        dont_initialize();
-    }
-
-private:
-    void main();
-
-    void instrFetch();
-    void opFetch();
-    void execute();
-};
+#define INSTR_LD        0b00000010
+#define INSTR_SD        0b00000011
+#define INSTR_ADD       0b00001000
+#define INSTR_HLT       0b00000000

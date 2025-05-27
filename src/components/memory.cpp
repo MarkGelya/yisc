@@ -24,10 +24,10 @@ void Memory::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 
     if (cmd == tlm::TLM_READ_COMMAND) {
         std::copy_n(mem + addr, len, ptr);
-        std::cout << "TLM_READ_COMMAND" << std::endl;
+        std::cout << "TLM_READ_COMMAND " << addr << std::endl;
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
         std::copy_n(ptr, len, mem + addr);
-        std::cout << "TLM_WRITE_COMMAND" << std::endl;
+        std::cout << "TLM_WRITE_COMMAND" << addr << " " << (int)mem[addr] << std::endl;
     }
 
     delay = sc_core::SC_ZERO_TIME;
@@ -37,10 +37,26 @@ void Memory::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 
 void Memory::readFile(std::string const &filename) {
     std::ifstream f;
-    f.open(filename);
+    f.open(filename, std::ios::binary);
     if (f.is_open()) {
+        int i = 0;
+        while (f.read((char*)(mem+i), 1)) {
+            i++;
+            if (i > MEM_SIZE)
+                break;
+        }
         f.close();
     } else {
         std::cerr << "MEMORY: not f.is_open()";
     }
 }
+
+Memory::~Memory() {
+    std::ofstream f;
+    f.open("dump.bin");
+    for (uint8_t *ptr = mem; ptr < mem + MEM_SIZE; ptr++) {
+        f.write((char*)ptr, 1);
+    }
+    f.close();
+}
+

@@ -19,6 +19,8 @@ public:
 
     virtual void b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
 
+    ~Memory();
+
 private:
     uint8_t mem[MEM_SIZE];
     void readFile(const std::string &filename);

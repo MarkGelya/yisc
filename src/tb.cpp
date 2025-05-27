@@ -20,7 +20,7 @@ int sc_main(int argc, char *argv[]) {
     clock.hlt(hlt);
     clock.run(run);
 
-    Memory memory("MEMORY");
+    Memory memory("MEMORY", "code.bin");
 
     CPU cpu("CPU");
     cpu.run(run);
@@ -29,7 +29,7 @@ int sc_main(int argc, char *argv[]) {
     cpu.hlt(hlt);
     cpu.memory(memory.socket);
 
-    sc_start(10, SC_SEC);
+    sc_start(100, SC_SEC);
 
     return 0;
 }

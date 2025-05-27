@@ -1,10 +1,3 @@
-## This project requires systemC to be compiled with cmake using C++17:
-## cd <systemc directory>
-## mkdir build
-## cd build
-## cmake ../ -DCMAKE_CXX_STANDARD=17
-## make
-
 cmake_minimum_required(VERSION 3.20)
 project(yisc)
 
@@ -21,10 +14,7 @@ add_compile_options(-O3 -g -Wall -Wextra -Wunused-function -Wpedantic)
 include_directories("./include/")
 file(GLOB SRC
     "./src/tb.cpp"
-    "./src/components/cpu/*.cpp"
-    "./src/components/clock_gen/*.cpp"
-    "./src/components/mem/*.cpp"
-    "./src/*.cpp"
+    "./src/components/*.cpp"
 )
 
 find_package(SystemCLanguage CONFIG REQUIRED)
