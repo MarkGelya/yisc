@@ -24,10 +24,8 @@ void Memory::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 
     if (cmd == tlm::TLM_READ_COMMAND) {
         std::copy_n(mem + addr, len, ptr);
-        std::cout << "TLM_READ_COMMAND " << addr << std::endl;
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
         std::copy_n(ptr, len, mem + addr);
-        std::cout << "TLM_WRITE_COMMAND" << addr << " " << (int)mem[addr] << std::endl;
     }
 
     delay = sc_core::SC_ZERO_TIME;
