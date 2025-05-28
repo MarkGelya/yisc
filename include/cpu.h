@@ -20,7 +20,7 @@ public:
 
     sc_port<sc_signal_out_if<bool>> hlt;
 
-    tlm_utils::simple_initiator_socket<CPU> memory;
+    tlm_utils::simple_initiator_socket<CPU> bus;
 
     // mem/io
     sc_signal<bool> busEnable;

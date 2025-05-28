@@ -1,14 +1,21 @@
 #include "cpu.h"
 #include "memory.h"
 #include "clock_generator.h"
+#include "bus.h"
 
 #define PERIOD 2
+
+#define FILENAME "code.bin"
 
 SC_MODULE(INIT) {
     sc_out<bool> run;
     sc_out<bool> rst;
 
     sc_in<bool> hlt;
+
+    sc_event ready;
+
+    tlm_utils::simple_initiator_socket<INIT> bus;
 
     void main() {
         run.write(false);
@@ -24,11 +31,41 @@ SC_MODULE(INIT) {
     }
 
     void stop() {
-        exit(0);
+        sc_core::sc_stop();
+    }
+
+    void load() {
+        char buff;
+        std::ifstream f;
+        f.open(FILENAME, std::ios::binary);
+        int i = 0;
+        if (f.is_open()) {
+            while (f.read((char*)(&buff), 1)) {
+                if (i > MEM_SIZE)
+                    break;
+                tlm::tlm_generic_payload trans;
+                trans.set_command(tlm::TLM_WRITE_COMMAND);
+                trans.set_address(i);
+                trans.set_data_ptr((unsigned char*)&buff);
+                trans.set_data_length(sizeof(buff));
+                sc_core::sc_time latency = sc_core::SC_ZERO_TIME;
+                bus->b_transport(trans, latency);
+                wait(latency);
+                i++;
+            }
+            f.close();
+        } else {
+            std::cerr << "MEMORY: not f.is_open()";
+        }
+        ready.notify();
     }
 
     SC_CTOR(INIT) {
         SC_METHOD(main);
+        sensitive << ready;
+        dont_initialize();
+
+        SC_THREAD(load);
 
         SC_METHOD(stop);
         sensitive << hlt.pos();
@@ -53,19 +90,23 @@ int sc_main(int argc, char *argv[]) {
     clock.hlt(hlt);
     clock.run(run);
 
-    Memory memory("MEMORY", "code.bin");
+    Memory memory("MEMORY");
+
+    Bus bus("Bus");
+    bus.memory_socket(memory.socket);
 
     CPU cpu("CPU");
     cpu.run(run);
     cpu.rst(rst);
     cpu.clk(clk);
     cpu.hlt(hlt);
-    cpu.memory(memory.socket);
+    cpu.bus(bus.cpu_memory_socket);
 
     INIT init("INIT");
     init.rst(rst);
     init.run(run);
     init.hlt(hlt);
+    init.bus(bus.init_memory_socket);
 
     sc_start(100, SC_SEC);
 

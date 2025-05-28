@@ -8,9 +8,11 @@ CPU::CPU(const sc_core::sc_module_name &name) : sc_module(name) {
 
     SC_THREAD(main)
     sensitive << clk << busReady;
+    dont_initialize();
 
     SC_THREAD(bus_thread)
     sensitive << clk << busEnable;
+    dont_initialize();
 }
 
 void CPU::instr_ld() {
@@ -123,7 +125,7 @@ void CPU::bus_thread() {
         trans.set_data_ptr((unsigned char*)&buff);
         trans.set_data_length(sizeof(buff));
         sc_core::sc_time latency = sc_core::SC_ZERO_TIME;
-        memory->b_transport(trans, latency);
+        bus->b_transport(trans, latency);
         wait(latency);
         busDataIn.write(buff);
         if (trans.get_response_status() != tlm::TLM_OK_RESPONSE)

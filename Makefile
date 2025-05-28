@@ -1,10 +1,9 @@
 CXX       ?= g++
 CXXFLAGS  ?= -std=c++17
 LDFLAGS   ?=
-SYSTEMC_HOME ?= /lib64
 
 ifeq ($(SYSTEMC_HOME),)
-$(error SYSTEMC_HOME not set)
+$(error SYSTEMC_HOME is not set)
 endif
 
 TARGET := main
