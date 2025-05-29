@@ -52,14 +52,15 @@ def HLT() -> bytes:
 
 
 program = []
-program.append(LD(imm=16, rd=10)) # 0x00
-program.append(LD(imm=16, rd=11)) # 0x04
-program.append(ADD(rs1=10, rs2=11, rd=12)) # 0x08
-program.append(SD(imm=12, rs2=12)) # 0x0C
-program.append(HLT()) # 0x10
-program.append(VALUE(0x01234567)) # 0x14
-program.append(VALUE(0x11111111)) # 0x18
-program.append(VALUE(0xC0FFEE00)) # 0x1C
+program.append(HLT())
+program.append(VALUE(0x01234567))
+program.append(VALUE(0x11111111))
+program.append(VALUE(0xC0FFEE00))
+program.append(LD(imm=-16, rd=10))
+program.append(LD(imm=-16, rd=11))
+program.append(ADD(rs1=10, rs2=11, rd=12))
+program.append(SD(imm=-20, rs2=12))
+program.append(HLT())
 
 f = open('code.bin', 'wb')
 

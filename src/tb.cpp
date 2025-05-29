@@ -8,26 +8,30 @@
 #define FILENAME "code.bin"
 
 SC_MODULE(INIT) {
+    SC_HAS_PROCESS(INIT);
+
+    uint32_t programCounter = 0;
+
     sc_out<bool> run;
     sc_out<bool> rst;
+    sc_out<sc_uint<32>> data;
 
     sc_in<bool> hlt;
-
-    sc_event ready;
 
     tlm_utils::simple_initiator_socket<INIT> bus;
 
     void main() {
         run.write(false);
         rst.write(true);
-        next_trigger(PERIOD, SC_SEC);
+        wait(PERIOD, SC_SEC);
 
         run.write(true);
+        data.write(programCounter);
         rst.write(false);
-        next_trigger(PERIOD, SC_SEC);
+        wait(PERIOD, SC_SEC);
 
         run.write(false);
-        next_trigger(PERIOD, SC_SEC);
+        wait(PERIOD, SC_SEC);
     }
 
     void stop() {
@@ -57,19 +61,20 @@ SC_MODULE(INIT) {
         } else {
             std::cerr << "MEMORY: not f.is_open()";
         }
-        ready.notify();
+        main();
     }
 
-    SC_CTOR(INIT) {
-        SC_METHOD(main);
-        sensitive << ready;
-        dont_initialize();
 
-        SC_THREAD(load);
+    INIT(const sc_core::sc_module_name &name, uint32_t programCounter) : sc_module(name),  programCounter(programCounter) {
+        // SC_METHOD(main);
+        // sensitive << ready;
+        // dont_initialize();
 
         SC_METHOD(stop);
         sensitive << hlt.pos();
         dont_initialize();
+
+        SC_THREAD(load);
     }
 };
 
@@ -102,12 +107,12 @@ int sc_main(int argc, char *argv[]) {
     cpu.hlt(hlt);
     cpu.bus(bus.cpu_memory_socket);
 
-    INIT init("INIT");
+    INIT init("INIT", 16);
     init.rst(rst);
     init.run(run);
     init.hlt(hlt);
     init.bus(bus.init_memory_socket);
-
+    init.data(cpu.busDataInPC);
     sc_start(100, SC_SEC);
 
     return 0;

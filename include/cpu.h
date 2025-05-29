@@ -12,6 +12,7 @@ public:
         InstrFetch = 0,
         Execute,
         HLT,
+        Init,
     };
 
     sc_port<sc_signal_in_if<bool>> run;
@@ -30,6 +31,8 @@ public:
     sc_signal<sc_uint<32>> busDataIn;
     sc_signal<sc_uint<32>> busDataOut;
 
+    sc_signal<sc_uint<32>> busDataInPC;
+
     CPU(const sc_core::sc_module_name &name);
 
 private:
@@ -39,12 +42,12 @@ private:
     State state;
 
     void main();
+    void reset();
     void bus_thread();
-    void extend_instrImmI_bus();
-    void extend_instrImmU_bus();
 
     void state_instrFetch();
     void state_execute();
+    void state_init();
 
     void instr_ld();
     void instr_sd();

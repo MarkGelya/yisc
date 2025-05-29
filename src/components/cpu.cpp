@@ -10,6 +10,10 @@ CPU::CPU(const sc_core::sc_module_name &name) : sc_module(name) {
     sensitive << clk << busReady;
     dont_initialize();
 
+    SC_METHOD(reset)
+    sensitive << rst;
+    dont_initialize();
+
     SC_THREAD(bus_thread)
     sensitive << clk << busEnable;
     dont_initialize();
@@ -58,6 +62,11 @@ void CPU::instr_hlt() {
     state = State::HLT;
 }
 
+void CPU::state_init() {
+    PC = busDataInPC.read();
+    state = State::InstrFetch;
+}
+
 void CPU::state_instrFetch() {
     busRdWr.write(0);
     busAddr.write(PC);
@@ -86,6 +95,9 @@ void CPU::state_execute() {
         case INSTR_HLT:
             instr_hlt();
             break;
+        default:
+            std::cerr << "Unknown opcode" << std::endl;
+            exit(1);
     }
 }
 
@@ -93,6 +105,10 @@ void CPU::main() {
     while (true) {
         wait(clk->posedge_event());
         switch (state) {
+            case State::Init:
+                std::cout << "State::Init" << endl;
+                state_init();
+                break;
             case State::InstrFetch:
                 std::cout << "State::InstrFetch" << endl;
                 state_instrFetch();
@@ -136,3 +152,7 @@ void CPU::bus_thread() {
     }
 }
 
+void CPU::reset() {
+    state = State::Init;
+    PC = 0;
+}
